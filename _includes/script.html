@@ -4,13 +4,30 @@
 			// More info about config & dependencies:
 			// - https://github.com/hakimel/reveal.js#configuration
 			// - https://github.com/hakimel/reveal.js#dependencies
-			Reveal.initialize({
-				hash: true,
-				dependencies: [
-					{ src: 'node_modules/reveal.js/plugin/markdown/marked.js' },
-					{ src: 'node_modules/reveal.js/plugin/markdown/markdown.js' },
-					{ src: 'node_modules/reveal.js/plugin/highlight/highlight.js' },
-					{ src: 'node_modules/reveal.js/plugin/notes/notes.js', async: true }
-				]
-			});
+			// WebView2 ExecuteScriptAsync compatibility: Ensure Reveal is ready before initialization
+			(function() {
+				function initializeReveal() {
+					if (typeof Reveal !== 'undefined') {
+						Reveal.initialize({
+							hash: true,
+							dependencies: [
+								{ src: 'node_modules/reveal.js/plugin/markdown/marked.js' },
+								{ src: 'node_modules/reveal.js/plugin/markdown/markdown.js' },
+								{ src: 'node_modules/reveal.js/plugin/highlight/highlight.js' },
+								{ src: 'node_modules/reveal.js/plugin/notes/notes.js', async: true }
+							]
+						});
+					} else {
+						// Retry if Reveal is not yet loaded (WebView2 ExecuteScriptAsync timing)
+						setTimeout(initializeReveal, 50);
+					}
+				}
+
+				// Ensure DOM is ready before initializing
+				if (document.readyState === 'loading') {
+					document.addEventListener('DOMContentLoaded', initializeReveal);
+				} else {
+					initializeReveal();
+				}
+			})();
 		</script>
